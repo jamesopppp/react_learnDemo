@@ -75,9 +75,8 @@ import Header from './components/Header';
 
 ### 使用花括号
 
-1.可以在花括号内写数值运算字符串还有三元运算,不能多语句
+可以在花括号内写表达式,变量,甚至函数等
 
-2.在return上可以写逻辑语句及变量,然后花括号使用
 
 ### 给组件传值
 
@@ -127,4 +126,35 @@ export default class Home extends Component {
     );
   }
 }
+```
+
+如果想进行类型检查可在子组件中进行操作:
+
+>Home.js
+
+```
+首先引入proptypes
+
+import PropTypes from 'prop-types';
+
+然后尾部限定类型:
+
+...
+
+Home.propTypes = {
+  name: PropTypes.string,  //限定传入值必须为string
+  age: PropTypes.number,
+  user: PropTypes.object,
+  xxx: PropTypes.any.isRequired, // 必须传入props值
+}
+```
+
+设置默认prop值
+
+```
+Home.defaultProps = {
+  name: 'james'
+};
+
+更多用法参考文档
 ```
