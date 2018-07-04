@@ -1,4 +1,5 @@
-学习react基础的记录
+## 前言
+在此记录下本萌新学习React的心路历程,加油!
 
 ### 使用create-react-app脚手架搭建项目
 
@@ -19,7 +20,7 @@ ReactDOM.render(
 ```
 使用jsx语法写html时记得,class要写成className,驼峰写法.
 
-
+---
 ### 创建控件
 
 引入基础
@@ -33,7 +34,7 @@ class name extends Component {
   }
 }
 ```
-
+---
 ### 多组件开发
 ```
 mkdir src/components
@@ -72,13 +73,13 @@ import Header from './components/Header';
 
 <Header/>
 ```
-
+---
 ### 使用花括号
 
 可以在花括号内写表达式,变量,甚至函数等
 
-
-### 使用prop传值
+---
+### 使用prop传值(父传子)
 
 使用props来传递父子值,父组件直接对子组件传值
 >App.js
@@ -175,7 +176,7 @@ prop传入子组件:
 {this.props.children}
 ```
 即便有多个也会一并插入
-
+---
 #### 添加事件
 组件内添加函数,但是绑定时注意几点
 
@@ -184,7 +185,7 @@ prop传入子组件:
 2.但是后面需要跟上bind(this),因为this的指向不正确,要手动绑定.
 
 3.使用onClick后使用箭头函数调用函数方法,可以不用绑定this.
-
+---
 #### 使用state与事件配合
 props传进来的数值怎么跟事件配合实现单击按钮增加数值的操作
 >Home.js
@@ -210,7 +211,7 @@ props传进来的数值怎么跟事件配合实现单击按钮增加数值的操
 ```
 <div>your name is {this.props.name},your age is {this.state.age}</div>
 ```
-
+---
 #### 无状态组件
 react无状态组件顾名思义就是没有用到任何状态,所以可以重构简化代码:
 >Header.js
@@ -257,6 +258,24 @@ export default class Home extends Component {
 ```
 
 3. 无状态组件
+```
+import React from 'react';
+
+const Header = (props) => {
+  return (
+    <div className="container">
+      <div className="row">
+        <div className="col-xs-1 col-xs-offset-11">
+          <h1>Header</h1>
+          <p>{props.name}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Header;
+```
 
 满足以下条件可以使用此方法创建组件:
 
@@ -269,3 +288,164 @@ export default class Home extends Component {
 >不需要声明类了,避免大量extends(继承)或constructor(构造函数)等代码
 
 >不需要显式声明this关键字,ES6类声明需要将函数的this指向绑定到当前作用域，函数式声明特效可以不用再强制绑定
+
+>反正就是能提升性能,更加方便简洁
+---
+#### 子组件向父组件通信
+利用prop传递函数,定义一个alert方法
+
+>App.js
+```
+  onGreet() {
+    alert(greet);
+  }
+```
+
+然后传入子组件:
+```
+greet={this.onGreet}
+```
+
+在子组件接收使用:
+
+>Home.js
+
+记得先规定传入类型:
+```
+Home.propTypes = {
+  greet: PropTypes.func
+}
+```
+这样就可以子组件触发父组件的操作了
+```
+<button className="btn btn-primary" onClick={this.props.greet}>Greet</button>
+```
+
+如果我要传参数到父组件呢.可以在子组件定义一个方法,向父传子的方法里传递参数:
+
+>Home.js
+```
+  handleGreet() {
+    this.props.greet(this.state.age)
+  }
+```
+调用时调用此方法:
+```
+onClick={this.handleGreet.bind(this)}
+使用到this指向的参数方法记得绑定this
+```
+然后修改父组件方法接收参数:
+```
+onGreet(age) {
+  alert('age: '+age);
+}
+```
+这样就可以简单获取到子组件传过来的参数了
+
+---
+#### 兄弟组件通信(prop)
+兄弟组件通信可以利用父组件prop传递来进行
+>App.js
+
+创建state参数
+```
+constructor(){
+  super();
+  this.state = {
+    homeLink: "Home"
+  }
+}
+...
+//利用prop传入state
+<Header homeLink={this.state.homeLink}/>
+```
+>Header.js
+
+子组件接收参数
+```
+const Header = (props) => {
+  return (
+    <div className="container">
+      <div className="row">
+        <div className="col-xs-1 col-xs-offset-11">
+          <h1>{props.homeLink}</h1>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+>App.js
+
+然后父组件传一个函数方法进入通信发起组件
+```
+//接收参数,并把参数设置覆盖state(即是被通信组件要使用的参数)
+onChangeLinkName(newName){
+  this.setState({
+    homeLink: newName
+  })
+}
+...
+//利用prop传入通信发起组件
+<Home changeLink={this.onChangeLinkName.bind(this)}/>
+```
+>Home.js
+
+通信发起的兄弟组件
+```
+//创建一个需要传递的state
+constructor(props) {
+  super(props);
+  this.state = {
+    homeLink: "Change Link"
+  }
+}
+...
+//然后创建一个函数方法调用prop传进来的父组件方法
+onChangeLink() {
+  this.props.changeLink(this.state.homeLink);
+  //传入state
+}
+...
+//按钮调用通信
+<button onClick={this.onChangeLink.bind(this)} className="btn btn-primary">Change Header Link</button>
+注意绑定this,因为用到了this指向参数.(具体还是有点模糊,反正用到this就绑定就是了)
+```
+
+这样就完成了简单的兄弟组件通信,利用了父组件做中转.不过如果组件嵌套复杂可能就不能这样了。
+
+---
+#### 双向绑定
+如何在兄弟组件中进行双向绑定,一边输入数据,另一边展示数据随之改变.
+
+>App.js
+```
+//传入输入框初始值 initialName
+<Home 
+changeLink={this.onChangeLinkName.bind(this)}
+initialName={this.state.homeLink}/>  
+```
+
+然后在改变数据的组件中进行操作:
+>Home.js
+```
+// 接收值初始化为组件内状态
+constructor(props) {
+  super(props);
+  this.state = {
+    homeLink: props.initialName
+  }
+}
+...
+// 创建函数方法监听onChange并将每次input改变的值更新至组件状态以及传递给prop方法
+onHandleChange(event){
+  this.setState({
+    homeLink: event.target.value
+  })
+  this.props.changeLink(event.target.value)
+}
+
+// 新建输入框监听onChange事件并传入event,并绑定默认参数
+<input  defaultValue={this.props.initialName} onChange={(event)=>this.onHandleChange(event)} type=""/>
+```
+这样每次输入字符都能更新到另外一个组件那了~
